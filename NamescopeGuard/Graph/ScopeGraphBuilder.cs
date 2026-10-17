@@ -17,12 +17,12 @@ internal static class ScopeGraphBuilder
         var parents = new Dictionary<string, string?>(StringComparer.Ordinal);
         CollectScopes(compilation.Assembly.GlobalNamespace, parents, cancellationToken);
 
-        var links = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        var links = new Dictionary<string, Dictionary<string, LinkKinds>>(StringComparer.Ordinal);
         foreach (var pair in parents)
         {
-            var targets = new HashSet<string>(StringComparer.Ordinal);
+            var targets = new Dictionary<string, LinkKinds>(StringComparer.Ordinal);
             if (generateDefaultParentLinks && pair.Value is not null)
-                targets.Add(pair.Value);
+                targets[pair.Value] = LinkKinds.Parent;
             links[pair.Key] = targets;
         }
 
@@ -49,7 +49,10 @@ internal static class ScopeGraphBuilder
 
         var graph = new ScopeGraph(links.ToImmutableDictionary(
             pair => pair.Key,
-            pair => pair.Value.ToImmutableHashSet(StringComparer.Ordinal),
+            pair => pair.Value.ToImmutableDictionary(
+                innerPair => innerPair.Key,
+                innerPair => innerPair.Value,
+                StringComparer.Ordinal),
             StringComparer.Ordinal));
 
         return (graph, diagnostics.ToImmutable());
@@ -73,7 +76,7 @@ internal static class ScopeGraphBuilder
     private static void ApplyDisconnectParent(
         AttributeData attribute,
         Dictionary<string, string?> parents,
-        Dictionary<string, HashSet<string>> links,
+        Dictionary<string, Dictionary<string, LinkKinds>> links,
         ImmutableArray<Diagnostic>.Builder diagnostics,
         CancellationToken cancellationToken)
     {
@@ -89,13 +92,21 @@ internal static class ScopeGraphBuilder
                 continue;
             }
 
-            links[scope].Remove(parent);
+            var targets = links[scope];
+            if (!targets.TryGetValue(parent, out var kinds))
+                continue;
+
+            var remaining = kinds & ~LinkKinds.Parent;
+            if (remaining == LinkKinds.None)
+                targets.Remove(parent);
+            else
+                targets[parent] = remaining;
         }
     }
 
     private static void ApplyLinkTo(
         AttributeData attribute,
-        Dictionary<string, HashSet<string>> links,
+        Dictionary<string, Dictionary<string, LinkKinds>> links,
         ImmutableArray<Diagnostic>.Builder diagnostics,
         CancellationToken cancellationToken)
     {
@@ -135,7 +146,17 @@ internal static class ScopeGraphBuilder
             return;
         }
 
-        links[from].Add(to);
+        AddLink(links, from, to, LinkKinds.Declared);
+    }
+
+    private static void AddLink(
+        Dictionary<string, Dictionary<string, LinkKinds>> links,
+        string from,
+        string to,
+        LinkKinds kind)
+    {
+        var targets = links[from];
+        targets[to] = targets.TryGetValue(to, out var existing) ? existing | kind : kind;
     }
 
     private static bool IsAttribute(AttributeData attribute, string fullName) =>

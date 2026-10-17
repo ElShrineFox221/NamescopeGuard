@@ -11,3 +11,4 @@ NSG0003 | NamescopeGuard | Warning | LinkTo 自链接
 NSG0004 | NamescopeGuard | Warning | nameof 分段不连续
 NSG0005 | NamescopeGuard | Warning | nameof 丢失命名空间前缀
 NSG0006 | NamescopeGuard | Warning | nameof 引用了非命名空间
+NSG0101 | NamescopeGuard | Error | internal 成员跨 Scope 访问

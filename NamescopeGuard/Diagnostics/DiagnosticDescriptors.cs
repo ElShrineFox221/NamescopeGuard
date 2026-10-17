@@ -53,4 +53,12 @@ internal static class DiagnosticDescriptors
         CATEGORY,
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor InternalScopeViolation = new(
+        "NSG0101",
+        "internal 成员跨 Scope 访问",
+        "`internal` 成员 “{0}” 不允许从 Scope “{1}” 访问（声明 Scope：“{2}”）",
+        CATEGORY,
+        DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
 }
