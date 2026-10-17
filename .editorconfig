@@ -1,0 +1,21 @@
+root = true
+
+[*.cs]
+indent_style = space
+indent_size = 4
+csharp_style_namespace_declarations = file_scoped:error
+dotnet_diagnostic.IDE0161.severity = error
+
+# C9 常量命名：大写 + 下划线
+dotnet_naming_rule.constants_upper_snake.severity = warning
+dotnet_naming_rule.constants_upper_snake.symbols = constants
+dotnet_naming_rule.constants_upper_snake.style = upper_snake
+
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.applicable_accessibilities = *
+dotnet_naming_symbols.constants.required_modifiers = const
+
+dotnet_naming_style.upper_snake.required_prefix =
+dotnet_naming_style.upper_snake.required_suffix =
+dotnet_naming_style.upper_snake.word_separator = _
+dotnet_naming_style.upper_snake.capitalization = all_upper
