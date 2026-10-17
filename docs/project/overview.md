@@ -14,6 +14,7 @@ C# 分析器（Roslyn analyzer）：对目标项目执行静态分析，围绕�
   - `LinkToAttribute`（assembly 级，`AllowMultiple = true`）：为（可跨子树的）`Scope` 声明额外 Link；支持 `(string, string)`、`(string[], string[])`（分段，便于 `nameof`）、`(Type, Type)`；
   - `DisconnectParentAttribute`（assembly 级，`AllowMultiple = true`）：断开默认父子 Link（即「切分」）；支持 `string` 或 `string[]`（分段，便于 `nameof`）；
   - `InternalScopeAttribute`（成员 / 类型）：配置 `internal` 许可的调用来源。
+- **GraphAttrs 校验**：仅对 `LinkToAttribute` / `DisconnectParentAttribute` 的 `nameof` 分段做连续性校验（NSG0004 分段数组不连续、NSG0005 全名实参前缀丢失、NSG0006 非命名空间操作数）；实参始终按字符串值使用，不作符号推导，字面量与 `const` 不校验。
 - **访问点分析**：基于 `Scope`，按可访问性划分全部类型及成员（含公开嵌套类型），仅不包括 `private` 成员。
 - **`internal` 约束**：`internal` 成员默认仅限当前 `Scope` 内被调用（其余调用报错），但沿 Link 有向可达的 `Scope` 亦可调用；来源由 `InternalScopeAttribute` 的 `AllowedScopes`（Flags）针对成员 / 类型配置：`Self = 0`（仅同 `Scope`）、`LinksParent = 1`、`LinksDeclared = 2`、`LinksAll = 3`（默认）、`NoConstraints = 4`（不约束）。
 - **整体配置**：通过 `.editorconfig` 自定义键（经 `AnalyzerConfigOptionsProvider` 读取）提供分析器整体配置，利用其目录节可做按目录 / 子树的默认策略。暂定项：
